@@ -52,11 +52,9 @@ class PostgresExtractor:
                 LEFT JOIN content.genre g ON g.id = gfw.genre_id
                 WHERE fw.modified > %s OR p.modified > %s OR g.modified > %s
                 GROUP BY fw.id""", last_modified)
-                while True:
-                    data = curs.fetchmany(self.chunk)
+
+                while data := curs.fetchmany(self.chunk):
                     yield data
-                    if not data:
-                        break
 
         except psycopg2.Error as e:
             logger.error(e)

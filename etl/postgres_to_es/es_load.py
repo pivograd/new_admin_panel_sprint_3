@@ -12,14 +12,16 @@ class ESLoader(Elasticsearch):
     Класс для загрузки подготовленных данных в elasticsearch
     """
 
-    def __init__(self, host):
+    def __init__(self, host, index_name):
         super(ESLoader, self).__init__(hosts=host)
+        self.create_index(index_name)
 
-    def create_index(self):
-        if not self.indices.exists(index='movies'):
+    @backoff()
+    def create_index(self, index_name):
+        if not self.indices.exists(index=index_name):
             index_settings = json.loads(open(
                 'index_settings.json').read())
-            self.indices.create(index='movies', body=index_settings)
+            self.indices.create(index=index_name, body=index_settings)
 
     @staticmethod
     def transform_data_for_load(data):
@@ -36,6 +38,5 @@ class ESLoader(Elasticsearch):
 
     @backoff()
     def load_es_data(self, data):
-        self.create_index()
         transform_data = self.transform_data_for_load(data)
         helpers.bulk(self, transform_data)
